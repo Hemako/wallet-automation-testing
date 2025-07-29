@@ -3,32 +3,12 @@ const path = require('path');
 const fs = require('fs');
 
 const capabilities = {
-  // platformName: 'Android',
-  // 'appium:automationName': 'UiAutomator2',
-  // 'appium:deviceName': 'emulator-5554',
-  // 'appium:platformVersion':'13',
-  // 'appium:appPackage': 'com.authnull.authenticator',
-  // 'appium:appActivity': '.MainActivity', 
   "appium:automationName": "UiAutomator2",
   "appium:deviceName": "emulator-5554",
-  // "appium:twcekjzx9xtwwg5t": "twcekjzx9xtwwg5t",
   "appium:platformName": "Android",
   "appium:platformVersion": "13",
-  "appium:app": "C:\\Users\\VC\\Downloads\\passwordless Setup 1.1.7-964c1906-617a-47a1-8b73-4618346d0a61.apk",
+  "appium:app": "C:\\Users\\VC\\Downloads\\application-be52d262-fe1e-45c9-b5b1-f56efbdd65cc.apk",
   "appium:autoGrantPermissions": true,
-  // 'appium:enableStorage': true,
-  // 'appium:plugin:storage': {
-  //   enabled: true
-  // },
-  // 'appium:plugins': {
-  //   storage: {}
-  // }
-  "appium:plugins": {
-    storage: {
-      active: true
-    }
-  }
-
 };
 
 const wdOpts = {
@@ -37,197 +17,171 @@ const wdOpts = {
   logLevel: 'info',
   path: '/',
   capabilities,
-
-  services: [
-    ['appium', {
-      args: ['--use-plugins', 'storage'],
-    }]
-  ],
-
 };
-
-async function testQRScanner(driver) {
-
-  // Wait for scanner to be ready
-  await driver.pause(3000);
-  const walletScreen = await driver.$('//*[@text="scan-qr"]');
-  await walletScreen.waitForDisplayed({ timeout: 5000 });
-
-  // const filePath = path.join(__dirname, 'mock-data.json');
-  // const base64Data = fs.readFileSync(filePath, 'base64');
-
-  // const response = await driver.execute('storage: put', {
-  //   name: 'mock-data.json',
-  //   data: base64Data,
-  // });
-  // console.log('📁 File stored at:', response);
-
-  const qrData = {
-    walletId: "9e743572-49dc-444c-a211-68ab6a8df6cf",
-    walletKey: "bc3ae293-5f1f-4f65-9911-541a883748d7",
-    email: "hema.latha@broadcom.com",
-    userId: "1fafa8b8-cbaa-4fe3-9456-c074f24abac4",
-    clientID: "9caaa2a8-0ea8-42ad-bedd-427bc3c9d415",
-    ClientTenantName: "system",
-    tenantName: "default",
-    apiUrl: "https://vl890982-dev-fbpl2.sspdev.dev.broadcom.com/default/"
-  };
-  await driver.pushFile(
-    '/sdcard/Download/fakeQrData.json',
-    Buffer.from(JSON.stringify(qrData)).toString()
-  );
-  console.log('✅ Simulated QR data injected');
-
-  await driver.pause(3000);
-
-  // Pull and verify
-  const pulled = await driver.pullFile('/sdcard/Download/fakeQrData.json');
-  const decoded = Buffer.from(pulled, 'base64').toString('utf8');
-  console.log('✅ File contents:', decoded);
-
-  // const nextScreenTitle = await driver.$('~Authenticator');
-  // await nextScreenTitle.waitForDisplayed({ timeout: 5000 });
-  // Assert something on the new screen
-  // expect(await nextScreenTitle.isDisplayed()).toBe(true);
-  // if (await walletScreen.isDisplayed()) {
-  //   console.log('🎉 QR scan succeeded. Wallet registration screen visible.');
-  // } else {
-  //   throw new Error('❌ QR scan failed or next screen not visible.');
-  // }
-  // await driver.switchContext({
-  //   url: /.*my-app\/home/,
-  //   androidWebviewConnectionRetryTime: 500,
-  //   androidWebviewConnectTimeout: 7000,
-  // });
-
-}
-
-async function injectAsyncStorageData(driver) {
-
-  // const filePath = path.join(__dirname, './Asyncstorage.json');
-  // const base64Data = fs.readFileSync(filePath, 'base64');
-
-  // const targetPath = '/data/data/com.broadcom.ssp.wallet/files/react-native-async-storage/AsyncStorage.json';
-  // await driver.pushFile(targetPath, base64Data);
-  // console.log("✅ Mock AsyncStorage injected.");
-
-
-  const jsonData = fs.readFileSync('./AsyncStorage.json', 'utf-8');
-
-
-  // await driver.execute('storage: set', {
-  //   path: 'react-native-async-storage/AsyncStorage.json',
-  //   key: null,
-  //   data: jsonData,
-  // });
-  // const result = await driver.execute('getSession');
-  // console.log('🔍 Session info:', result);
-
-  // await driver.execute('storage: set', [{
-  //   path: 'react-native-async-storage/AsyncStorage.json',
-  //   data: JSON.stringify({
-  //     tenantInfo: JSON.stringify({
-  //       walletId: "9e743572-49dc-444c-a211-68ab6a8df6cf",
-  //       walletKey: "bc3ae293-5f1f-4f65-9911-541a883748d7",
-  //       email: "hema.latha@broadcom.com",
-  //       userId: "1fafa8b8-cbaa-4fe3-9456-c074f24abac4",
-  //       clientID: "9caaa2a8-0ea8-42ad-bedd-427bc3c9d415",
-  //       ClientTenantName: "system",
-  //       tenantName: "default",
-  //       apiUrl: "https://vl890982-dev-fbpl2.sspdev.dev.broadcom.com/default/"
-  //     })
-  //   })
-  // }]);
-
-  const asyncStorageJson = {
-    tenantInfo: JSON.stringify({
-      walletId: "9e743572-49dc-444c-a211-68ab6a8df6cf",
-      walletKey: "bc3ae293-5f1f-4f65-9911-541a883748d7",
-      email: "hema.latha@broadcom.com",
-      userId: "1fafa8b8-cbaa-4fe3-9456-c074f24abac4",
-      clientID: "9caaa2a8-0ea8-42ad-bedd-427bc3c9d415",
-      ClientTenantName: "system",
-      tenantName: "default",
-      apiUrl: "https://vl890982-dev-fbpl2.sspdev.dev.broadcom.com/default/"
-    })
-  };
-
-  // await driver.pushFile(
-  //   '/data/data/com.broadcom.ssp.wallet/files/react-native-async-storage/AsyncStorage.json',
-  //   Buffer.from(JSON.stringify(asyncStorageJson)).toString('base64')
-  // );
-  // console.log('✅ AsyncStorage mock data pushed to app directory');
-
-  // console.log('✅ Mock AsyncStorage injected');
-
-  const status = await driver.status();
-  console.log('Appium Server Status:', status);
-
-
-  try {
-    await driver.execute('storage: set', [{
-      path: 'react-native-async-storage/AsyncStorage.json',
-      data: JSON.stringify(asyncStorageJson)
-    }]);
-
-    console.log('✅ AsyncStorage mock data injected successfully');
-  } catch (err) {
-    console.error('❌ Failed to inject mock data:', err);
-  }
-
-}
-
-// async function storedata(driver) {
-//   const mockData = {
-//     tenantInfo: JSON.stringify({
-//       walletId: "9e743572-49dc-444c-a211-68ab6a8df6cf",
-//       walletKey: "bc3ae293-5f1f-4f65-9911-541a883748d7",
-//       email: "hema.latha@broadcom.com",
-//       userId: "1fafa8b8-cbaa-4fe3-9456-c074f24abac4",
-//       clientID: "9caaa2a8-0ea8-42ad-bedd-427bc3c9d415",
-//       ClientTenantName: "system",
-//       tenantName: "default",
-//       apiUrl: "https://vl890982-dev-fbpl2.sspdev.dev.broadcom.com/default/"
-//     })
-//   };
-
-//   // Convert JSON to escaped string for shell
-//   const jsonString = JSON.stringify(mockData).replace(/"/g, '\\"');
-
-//   await driver.execute('mobile: shell', {
-//     command: 'run-as',
-//     args: [
-//       'com.authnull.authenticator',
-//       'sh', '-c',
-//       `mkdir -p files/react-native-async-storage && echo "${jsonString}" > files/react-native-async-storage/AsyncStorage.json`
-//     ],
-//     includeStderr: true,
-//   });
-
-//   console.log('✅ Injected AsyncStorage data via run-as');
-
-// }
 
 async function runTest() {
   const driver = await remote(wdOpts);
+  //Enter code Before start the server
+  let code = 'eyJ3YWxsZXRJZCI6IjA2NGM1ZGNjLWRkMWYtNDM1Yy1hZjc1LTVlYzUwMWU3Y2EyOSIsIndhbGxldEtleSI6IjVjMWU2MjdhLTFkZGMtNDI3Zi05M2I0LTQ5NGViMzI3ZmQ2MyIsImVtYWlsIjoiaGVtYS5sYXRoYUBicm9hZGNvbS5jb20iLCJjbGllbnRJRCI6IjI4N2JhMjI1LWRlMDctNGZlNy05YmNkLWRkMzI3YmVhYjhlZCIsInVzZXJJZCI6IjQ4MmIyYTJiLThjNzAtNGNkYy05MzRmLTA2MDdlMDQ0ODA4NCIsIkNsaWVudFRlbmFudE5hbWUiOiJzeXN0ZW0iLCJ0ZW5hbnROYW1lIjoiZGVmYXVsdCIsImFwaVVybCI6Imh0dHBzOi8vdmw4OTA5ODItZGV2LWZicGwyLnNzcGRldi5kZXYuYnJvYWRjb20uY29tL2RlZmF1bHQvIn0='
+  let usernameVal = 'hemalatha'
+  let passwordVal = 'Test@123'
+
+
   try {
-    console.log("Running test: Allow Notification");
-    const sessionId = driver.sessionId;
-    console.log('Session ID:', sessionId);
-    await driver.pause(4000);
+    // await driver.getPageSource()
+    const titleElement = await driver.$('android=new UiSelector().text("Configure Wallet")');
+    const isDisplayed = await titleElement.isDisplayed();
+    await driver.pause(5000);
+    if (isDisplayed) {
+      const inputField = await driver.$('android=new UiSelector().text("Enter the QR Code from Self Service Console.")');
+      const isInputFieldDisplayed = await inputField.isDisplayed()
+      if (isInputFieldDisplayed) {
+        const QrCodeInput = await driver.$('//android.widget.EditText[@text="john@doe.com"]');
+        await QrCodeInput.clearValue();
+        await QrCodeInput.setValue(code);
+        console.log('Entered QR code successfully');
+        await driver.pause(3000);
+        // Click the button
+        const button = await driver.$('//android.widget.TextView[@text="Configue"]');
+        await button.click();
+        await driver.pause(3000);
+      } else {
+        console.log('Input field not visible');
+      }
 
-    // await testQRScanner(driver)
-    await injectAsyncStorageData(driver)
-    await driver.pause(4000);
+    } else {
+      console.log("Its not displayed")
+    }
 
-    console.log("Running test: Resister Wallet");
+    await driver.pause(3000);
+    const loginHeader = await driver.$('android=new UiSelector().text("Connecting to WalletClient")');
+    const isloginHeaderDisplayed = await loginHeader.isDisplayed()
+    if (isloginHeaderDisplayed) {
+      const usernameLable = await driver.$('//android.view.View[@text="Username"]');
+      const isUsernameLableDisplayed = await usernameLable.isDisplayed()
+      if (isUsernameLableDisplayed) {
+        const usernameInput = await driver.$('android=new UiSelector().resourceId("usernameInput")')
+        await usernameInput.clearValue();
+        await usernameInput.setValue(usernameVal);
+        console.log('Entered Username successfully');
+        await driver.pause(3000);
+        // Click the next button
+        await driver.$('android=new UiScrollable(new UiSelector().scrollable(true)).scrollForward()')
+        const nextButton = await driver.$('//android.widget.Button[@text="Next"]');
+        await nextButton.click();
+        await driver.pause(3000);
+        const passwordLable = await driver.$('android=new UiSelector().text("Password")')
+        const isPasswordLableDisplayed = await passwordLable.isDisplayed()
+        if (isPasswordLableDisplayed) {
+          const usernameInput = await driver.$('android=new UiSelector().resourceId("passwordInput")')
+          await usernameInput.clearValue();
+          await usernameInput.setValue(passwordVal);
+          console.log('Entered Password successfully');
+          await driver.pause(3000);
+          // Click the signin button
+          await driver.$('android=new UiScrollable(new UiSelector().scrollable(true)).scrollForward()')
+          const sigInButton = await driver.$('//android.widget.Button[@text="Sign In"]');
+          await sigInButton.click();
+          await driver.pause(3000);
+        } else {
+          await driver.pause(4000);
+          console.log('Password Input field not visible');
+          console.error('Test error:', err);
+        }
+      } else {
+        await driver.pause(4000);
+        console.log('Username Input field not visible');
+        console.error('Test error:', err);
+      }
+      await driver.pause(3000);
+      const SignInHeader = await driver.$('//android.widget.TextView[@text="Welcome!"]');
+      const isSignInHeaderDisplayed = await SignInHeader.isDisplayed()
+      if (isSignInHeaderDisplayed) {
+        const passwordInput = await driver.$('android=new UiSelector().text("Wallet Password")')
+        await passwordInput.clearValue();
+        await passwordInput.setValue(passwordVal);
+        console.log('Entered Password successfully');
+        // Click the signin button
+        const sigInButton = await driver.$('android=new UiSelector().text("Sign In")');
+        await sigInButton.click();
+        await driver.pause(1000);
+        console.log('Wallet Logged In successfully');
+      } else {
+        console.log('Password Input field not visible');
+        console.error('Test error:', err);
+      }
+      await driver.pause(3000);
+      const homeHeader = await driver.$('android=new UiSelector().text("Authenticator")');
+      const isHomeDisplayed = await homeHeader.isDisplayed();
+      // const homeEmailDisplayed = await driver.$('android=new UiSelector().text("hema.latha@broadcom.com")');
+      // const ishomeEmailDisplayed = await homeEmailDisplayed.isDisplayed();
+      if (isHomeDisplayed) {
+        const allTab = await driver.$('android=new UiSelector().text("All")');
+        const isAllTabDisplayed = await allTab.isDisplayed();
+        const idpTab = await driver.$('android=new UiSelector().text("IdP")');
+        const isIdpTabDisplayed = await idpTab.isDisplayed();
+        await idpTab.click()
+        await driver.pause(3000)
+        const serviceAccountTab = await driver.$('android=new UiSelector().text("My Service Accounts")');
+        const isServiceAccountTabDisplayed = await serviceAccountTab.isDisplayed();
+        await serviceAccountTab.click()
+        await driver.pause(3000)
+        await idpTab.click()
+        await driver.pause(3000)
+        if (isAllTabDisplayed && isIdpTabDisplayed && isServiceAccountTabDisplayed) {
+          const idpCredential = await driver.$('//android.view.ViewGroup[@content-desc="Username: hemalatha, Identity Type : IdP"]/android.view.ViewGroup/android.view.ViewGroup');
+          const isIdpCredentialDisplayed = await idpCredential.isDisplayed();
+          console.log('IDP Credentials visible successfully');
+          if (isIdpCredentialDisplayed) {
+            await idpCredential.click();
+            await driver.pause(3000);
+            const credentialInfo = await driver.$('//android.widget.TextView[@text="Credential Information"]')
+            await credentialInfo.isDisplayed();
+            await driver.pause(3000);
+            const backToHome = await driver.$('//android.widget.ImageButton[@content-desc="Navigate up"]')
+            await backToHome.isDisplayed();
+            await backToHome.click();
+            await driver.pause(3000);
+            await homeHeader.isDisplayed();
+          } else {
+            console.log('IDP Credentials not visible');
+            console.error('Test error IDP Credentials:', err);
+          }
+        } else {
+          console.log('Tabs not visible');
+          console.error('Test error Tabs:', err);
+        }
+
+        await driver.pause(3000);
+
+        const syncBtn = await driver.$('android=new UiSelector().className("android.view.ViewGroup").instance(10)')
+        const isSyncBtmDisplayed = syncBtn.isDisplayed()
+        if (isSyncBtmDisplayed) {
+          const syncBtnClick = await driver.$('android=new UiSelector().className("android.view.ViewGroup").instance(10)')
+          await syncBtnClick.click();
+          await driver.pause(3000)
+          const syncSuccessAlert = await driver.$('android=new UiSelector().resourceId("com.broadcom.ssp.wallet:id/alert_title")')
+          const isSyncSuccess = await syncSuccessAlert.isDisplayed();
+          if (isSyncSuccess) {
+            const syncSuccessOk = await driver.$('//android.widget.Button[@resource-id="android:id/button1"]')
+            await syncSuccessOk.isDisplayed()
+            await driver.pause(3000)
+            await syncSuccessOk.click();
+            await homeHeader.isDisplayed();
+            await driver.pause(3000)
+          }
+        } else {
+          console.log('Sync not visible');
+          console.error('Test error Tabs:', err);
+        }
+      }
+    }
   } catch (err) {
     await driver.pause(4000);
-
     console.error('Test error:', err);
   } finally {
     await driver.pause(8000);
-    // await driver.deleteSession();
+    await driver.deleteSession();
   }
 }
 
