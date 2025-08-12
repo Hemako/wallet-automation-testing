@@ -18,5 +18,8 @@
     "storage": "^0.2.0",
     "wdio-appium-service": "^0.2.3",
     "webdriverio": "^9.18.0"
+  },
+  "dependencies": {
+    "axios": "^1.11.0"
   }
 }
