@@ -3,14 +3,6 @@ const path = require("path");
 const axios = require("axios");
 
 const capabilities = {
-  // "appium:automationName": "UiAutomator2",
-  // "appium:deviceName": "emulator-5554",
-  // "appium:platformName": "Android",
-  // "appium:platformVersion": "14",
-  // "appium:app":
-  //   "C:\\Users\\VC\\Downloads\\application-be52d262-fe1e-45c9-b5b1-f56efbdd65cc.apk",
-  // "appium:autoGrantPermissions": true,
-
   "appium:automationName": "UiAutomator2",
   "appium:deviceName": "emulator-5554",
   "appium:platformName": "Android",
@@ -42,8 +34,8 @@ let searchVal = "hemalatha";
 const BASEPATH = "https://vl890982-pwlessteam.sspdev.dev.broadcom.com/default";
 
 const generateToken = () => {
-  const clientID = "9d511f53-52d2-4281-94f2-f88a297bc6b3";
-  const clientSecret = "06575b51-a356-4b14-953e-a28e313c122f";
+  const clientID = "6cf96ef0-f63b-4428-bec5-fe8711afb1c2";
+  const clientSecret = "4b483d2d-dc51-47f5-b149-17b6204d1ccd";
   const apiUrl = `${BASEPATH}/oauth2/v1/token`;
   const authString = `${clientID}:${clientSecret}`;
   const encodedAuth = btoa(authString);
@@ -119,8 +111,8 @@ const inititateAuthPassword = (accessToken, resData) => {
 
 const generateUserToken = (res) => {
   let apiUrl = `${BASEPATH}/oauth2/v1/token`;
-  const clientID = "9d511f53-52d2-4281-94f2-f88a297bc6b3";
-  const clientSecret = "06575b51-a356-4b14-953e-a28e313c122f";
+  const clientID = "a708d773-1017-4eb6-8bdc-abf6e15f2e90";
+  const clientSecret = "b464a6ea-061e-400a-ab12-2b7251afd691";
   const authString = `${clientID}:${clientSecret}`;
   const encodedAuth = btoa(authString);
 
