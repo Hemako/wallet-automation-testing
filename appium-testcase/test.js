@@ -31,7 +31,7 @@ let tenantUserInfo = null;
 let policyId = null;
 let searchVal = "hemalatha";
 
-const BASEPATH = "https://vl890982-pwlessteam.sspdev.dev.broadcom.com/default";
+const BASEPATH = "https://vl890982-dev-fbpl2.sspdev.dev.broadcom.com/default";
 
 const generateToken = () => {
   const clientID = "6cf96ef0-f63b-4428-bec5-fe8711afb1c2";
