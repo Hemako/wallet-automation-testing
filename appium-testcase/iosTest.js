@@ -25,7 +25,9 @@ const iosCapability = {
   "appium:settings[includeNonModalElements]": true,
   "appium:showSemanticsInformation": true,
 };
-const platform = process.env.PLATFORM || "android";
+const platform = process.env.PLATFORM;
+
+console.log(platform, "platform");
 
 const wdOpts = {
   hostname: process.env.APPIUM_HOST || "localhost",
