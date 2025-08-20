@@ -166,10 +166,36 @@ const UserInfo = (walletClientInfo) => {
         Authorization: `Bearer ${token}`,
       },
     })
-    .then((res) => {
-      // console.log(res.data);
-      let userInfo = res.data;
-      createWallet(walletClientInfo, userInfo);
+    .then(async (res) => {
+      // console.log(res.data, "userinfo");
+      let userInfo = null;
+      function parseJwt(token) {
+        try {
+          if (!token) throw new Error("No token provided");
+
+          const base64Url = token.split(".")[1];
+          if (!base64Url) throw new Error("Invalid token format");
+
+          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split("")
+              .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+              .join("")
+          );
+
+          const parsed = JSON.parse(jsonPayload);
+          console.log("User JSON:", parsed);
+
+          return (userInfo = parsed);
+        } catch (error) {
+          console.error("JWT parsing failed:", error.message);
+          return null;
+        }
+      }
+      await parseJwt(res.data);
+
+      await createWallet(walletClientInfo, userInfo);
     })
     .catch((err) => {
       console.log(err, "setting wallet error");
@@ -266,21 +292,21 @@ const policyUpdate = (id) => {
           sourceMachine: {
             hostFqdn: {
               operator: "in",
-              value: ["test machine 5"],
+              value: ["test-VM-Machine 4o6tevivja"],
             },
             hostIp: {
               operator: "in",
-              value: ["5.45.5.5"],
+              value: ["42.226.85.135"],
             },
           },
           destinationMachine: {
             hostFqdn: {
               operator: "not",
-              value: ["test-vm-16.passwordless.com"],
+              value: ["test-vm-14.passwordless.com"],
             },
             hostIp: {
               operator: "in",
-              value: ["20.64.169.92"],
+              value: ["20.9.144.76"],
             },
           },
         },
@@ -343,11 +369,11 @@ const sendPresentationRequest = (accessToken) => {
   const apiUrl = `${BASEPATH}/machineid/v1/client/auth/api/v3/do-authenticationV4`;
   const payload = {
     username: "hemalatha",
-    hostname: "test-vm-16.passwordless.com",
+    hostname: "test-vm-14.passwordless.com",
     groupName: "",
     credentialType: "ServiceAccount",
     requestId: "",
-    sourceIp: "10.4.0.46",
+    sourceIp: "42.226.85.135",
     port: "9999",
   };
   axios
