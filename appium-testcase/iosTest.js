@@ -585,6 +585,7 @@ async function testSSPLogin(driver) {
       const usernameInput = await driver.$(
         'android=new UiSelector().resourceId("usernameInput")'
       );
+      await usernameInput.click();
       await usernameInput.clearValue();
       await usernameInput.setValue(usernameVal);
       console.log("Entered Username successfully");
@@ -603,12 +604,12 @@ async function testSSPLogin(driver) {
       );
       const isPasswordLableDisplayed = await passwordLable.isDisplayed();
       if (isPasswordLableDisplayed) {
-        const usernameInput = await driver.$(
+        const passwordInput = await driver.$(
           'android=new UiSelector().resourceId("passwordInput")'
         );
-        await usernameInput.clearValue();
-        await usernameInput.click();
-        await usernameInput.setValue(passwordVal);
+        await passwordInput.click();
+        await passwordInput.clearValue();
+        await passwordInput.setValue(passwordVal);
         console.log("Entered Password successfully");
         await driver.pause(3000);
         // Click the signin button
@@ -656,6 +657,7 @@ async function testIOSSSPLogin(driver) {
       const usernameInput = await driver.$(
         '//XCUIElementTypeTextField[@name="Username"]'
       );
+      await usernameInput.click();
       await usernameInput.clearValue();
       await usernameInput.setValue(usernameVal);
       console.log("Entered Username successfully");
@@ -674,11 +676,12 @@ async function testIOSSSPLogin(driver) {
       );
       const isPasswordLableDisplayed = await passwordLable.isDisplayed();
       if (isPasswordLableDisplayed) {
-        const usernameInput = await driver.$(
+        const passwordInput = await driver.$(
           '//XCUIElementTypeSecureTextField[@name="Password"]'
         );
-        await usernameInput.clearValue();
-        await usernameInput.setValue(passwordVal);
+        await passwordInput.click();
+        await passwordInput.clearValue();
+        await passwordInput.setValue(passwordVal);
         console.log("Entered Password successfully");
         await driver.pause(3000);
         // Click the signin button
