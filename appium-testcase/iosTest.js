@@ -43,6 +43,7 @@ let token_password = "Test@123";
 let qrCode = null;
 let tenantUserInfo = null;
 let policyId = null;
+let policyId2 = null;
 let searchVal = "hemalatha";
 
 const BASEPATH = "https://vl890982-dev-fbpl2.sspdev.dev.broadcom.com/default";
@@ -269,6 +270,21 @@ const deletePolicy = () => {
       console.log(err, "Delete Policy error");
     });
 };
+const deletePolicy2 = () => {
+  let apiUrl = `${BASEPATH}/me/v1/Machine2MachinePolicies/${policyId2}`;
+  axios
+    .delete(apiUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((res) => {
+      console.log("Policy Deleted Successfully");
+    })
+    .catch((err) => {
+      console.log(err, "Delete Policy error");
+    });
+};
 
 const CreatePolicy = async () => {
   let apiUrl = `${BASEPATH}/me/v1/Machine2MachinePolicies`;
@@ -277,7 +293,7 @@ const CreatePolicy = async () => {
     status: "inactive",
     policyName: "Sample Machine2Machine policy",
     policyPriority: 1,
-    startDate: "2025-08-04 00:00 AM UTC",
+    startDate: "2025-08-21 00:00 AM UTC",
     endDate: "2025-08-30 00:00 PM UTC",
     tags: ["test"],
   };
@@ -305,7 +321,106 @@ const policyUpdate = (id) => {
     status: "active",
     policyName: "Sample Machine2Machine policy",
     policyPriority: 1,
-    startDate: "2025-08-04 00:00 AM UTC",
+    startDate: "2025-08-21 00:00 AM UTC",
+    endDate: "2025-08-30 00:00 PM UTC",
+    tags: ["test"],
+    rules: [
+      {
+        conditions: {
+          serviceAccount: {
+            operator: "in",
+            value: ["dbbackup"],
+          },
+          principal: {
+            user: {
+              operator: "in",
+              value: ["hemalatha"],
+            },
+          },
+          sourceMachine: {
+            hostFqdn: {
+              operator: "in",
+              value: ["test-VM-Machine 4o6tevivja"],
+            },
+            hostIp: {
+              operator: "in",
+              value: ["42.226.85.135"],
+            },
+          },
+          destinationMachine: {
+            hostFqdn: {
+              operator: "not",
+              value: ["test-vm-16.passwordless.com"],
+            },
+            hostIp: {
+              operator: "in",
+              value: ["20.64.169.92"],
+            },
+          },
+        },
+        result: {
+          effect: "allow",
+          reAuth: "true",
+          reAuthFrequency: "EveryTime",
+          msg: "This policy is for login in mobile testcase",
+          rulePriority: 2,
+        },
+      },
+    ],
+  };
+  let apiUrl = `${BASEPATH}/me/v1/Machine2MachinePolicies/${id}`;
+  axios
+    .put(apiUrl, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+    .then((res) => {
+      console.log(res.data, "POLICY UPDATE");
+      console.log("POLICY CREATED SUCCESSFULLY");
+    })
+    .catch((err) => {
+      console.log("error unable to update policy: ", err);
+    });
+};
+
+const CreatePolicy2 = async () => {
+  let apiUrl = `${BASEPATH}/me/v1/Machine2MachinePolicies`;
+  let payload = {
+    description: "Sample Machine2Machine policy2 testcase",
+    status: "inactive",
+    policyName: "Sample Machine2Machine testCase policy2",
+    policyPriority: 1,
+    startDate: "2025-08-21 00:00 AM UTC",
+    endDate: "2025-08-30 00:00 PM UTC",
+    tags: ["test"],
+  };
+
+  axios
+    .post(apiUrl, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+    .then(async (response) => {
+      console.log("policy data:", response.data);
+      policyId2 = response.data.policyId;
+      policyUpdate2(response.data.policyId);
+    })
+    .catch((error) => {
+      console.error("Error creating policy:", error);
+    });
+};
+
+const policyUpdate2 = (id) => {
+  let payload = {
+    description: "Sample Machine2Machine policy2 testcase",
+    status: "active",
+    policyName: "Sample Machine2Machine testCase policy2",
+    policyPriority: 1,
+    startDate: "2025-08-21 00:00 AM UTC",
     endDate: "2025-08-30 00:00 PM UTC",
     tags: ["test"],
     rules: [
@@ -604,6 +719,9 @@ async function testSSPLogin(driver) {
       );
       const isPasswordLableDisplayed = await passwordLable.isDisplayed();
       if (isPasswordLableDisplayed) {
+        await driver.$(
+          "android=new UiScrollable(new UiSelector().scrollable(true)).scrollForward()"
+        );
         const passwordInput = await driver.$(
           'android=new UiSelector().resourceId("passwordInput")'
         );
@@ -620,6 +738,7 @@ async function testSSPLogin(driver) {
           '//android.widget.Button[@text="Sign In"]'
         );
         await sigInButton.click();
+        await driver.pause(5000);
         await driver.pause(3000);
       } else {
         await driver.pause(4000);
@@ -894,30 +1013,6 @@ const mainFunction = async () => {
       // SYNC CREDENTIAL BUTTON
       await testSyncCredential(driver);
 
-      // //DENY CREDENTIAL
-      // const denyCredential = await driver.$("~acceptCredentialHeader");
-      // const isDenyCredentialDisplayed = await denyCredential.isDisplayed();
-      // if (isDenyCredentialDisplayed) {
-      //   const acceptBtn = await driver.$("~rejectCredentialButton");
-      //   await acceptBtn.isDisplayed();
-      //   await acceptBtn.click();
-
-      //   await testFingerPrint(driver);
-      // } else {
-      //   console.log("Authentication Failed");
-      // }
-      // // await deletePolicy();
-      // await driver.pause(4000);
-      // await CreatePolicy();
-      // console.log("Creating Policy.....");
-      // await driver.pause(6000);
-
-      // //SYNC Credential TO ACCEPT CREDENTIAL
-      // await driver.pause(6000);
-
-      // await testSyncCredential(driver);
-      // await driver.pause(6000);
-
       //ACCEPT CREDENTIAL
       await driver.pause(2000);
       const acceptCredential = await driver.$("~acceptCredentialHeader");
@@ -931,6 +1026,30 @@ const mainFunction = async () => {
       } else {
         console.log("Authentication Failed");
       }
+
+      //DENY CREDENTIAL
+
+      await CreatePolicy2();
+      await console.log("Creating Policy.....");
+      await driver.pause(6000);
+      await driver.pause(3000);
+      //SYNC Credential TO ACCEPT CREDENTIAL
+      await driver.pause(6000);
+      await console.log("Sync Credential started.....");
+      await testSyncCredential(driver);
+      await driver.pause(6000);
+
+      const denyCredential = await driver.$("~acceptCredentialHeader");
+      const isDenyCredentialDisplayed = await denyCredential.isDisplayed();
+      if (isDenyCredentialDisplayed) {
+        const acceptBtn = await driver.$("~rejectCredentialButton");
+        await acceptBtn.isDisplayed();
+        await acceptBtn.click();
+        await testFingerPrint(driver);
+      } else {
+        console.log("Authentication Failed");
+      }
+
       //ACTIVITY TAB
       await testActivityLog(driver);
 
@@ -1058,10 +1177,12 @@ const mainFunction = async () => {
     // await driver.pause(4000);
     await deleteWallet();
     await deletePolicy();
+    await deletePolicy2();
     console.log("Wallet Deleted Successfully");
   } finally {
     await deleteWallet();
     await deletePolicy();
+    await deletePolicy2();
     console.log("Wallet Deleted Successfully");
     await driver.pause(3000);
     await driver.deleteSession();
