@@ -24,6 +24,8 @@ const iosCapability = {
   "appium:settings[shouldUseCompactResponses]": false,
   "appium:settings[includeNonModalElements]": true,
   "appium:showSemanticsInformation": true,
+  "appium:autoAcceptAlerts": true,
+  "appium:enforceFaceId": true,
 };
 const platform = process.env.PLATFORM;
 
