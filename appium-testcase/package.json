@@ -5,7 +5,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:android": "cross-env PLATFORM=android node iosTest.js",
-    "test:ios": "cross-env PLATFORM=ios node iosTest.js"
+    "test:ios": "cross-env PLATFORM=ios node iosTest.js",
+    "test:mac": "cross-env PLATFORM=mac node desktopTest.js",
+    "test:windows": "cross-env PLATFORM=windows node desktopTest.js"
   },
   "author": "",
   "license": "ISC",
