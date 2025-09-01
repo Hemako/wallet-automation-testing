@@ -42,8 +42,8 @@ let searchVal = "hemalatha";
 const BASEPATH = "https://vl890982-dev-fbpl2.sspdev.dev.broadcom.com/default";
 
 const generateToken = () => {
-  const clientID = "6cf96ef0-f63b-4428-bec5-fe8711afb1c2";
-  const clientSecret = "4b483d2d-dc51-47f5-b149-17b6204d1ccd";
+  const clientID = "83ec3746-d86c-4ff5-8f27-0f7e9d427a8e";
+  const clientSecret = "aaccc8cd-581c-4bd6-9836-62747bfd77cf";
   const apiUrl = `${BASEPATH}/oauth2/v1/token`;
   const authString = `${clientID}:${clientSecret}`;
   const encodedAuth = btoa(authString);
@@ -346,8 +346,8 @@ const policyUpdate = (id) => {
 };
 
 const generateTokenForAuthRequest = () => {
-  const clientID = "43a04bdd-ae3f-4d90-89b1-fc9cd9e03861";
-  const clientSecret = "65891336-febb-481f-870d-1bf327ccb1e6";
+  const clientID = "4fb66f92-5bb6-44a6-b09f-ff5b0aff9bbe";
+  const clientSecret = "4a229ec2-59cb-4f09-adaa-35e62f33a17e";
   const apiUrl = `${BASEPATH}/oauth2/v1/token`;
   const authString = `${clientID}:${clientSecret}`;
   const encodedAuth = btoa(authString);
