@@ -1,7 +1,7 @@
 const { remote } = require("webdriverio");
 const path = require("path");
 const axios = require("axios");
-
+ 
 const capabilities = {
   "appium:automationName": "Windows",
   "appium:deviceName": "WindowsPC",
@@ -13,15 +13,15 @@ const capabilities = {
   "appium:platformName": "Windows",
 };
 const macCapability = {
+  "appium:platformName": "mac",
   "appium:automationName": "mac2",
-  "appium:deviceName": "mac",
-  "appium:app": "com.broadcom.ssp.wallet",
-  "appium:autoGrantPermissions": true,
+  "appium:bundleId": "com.broadcom.ssp.wallet",
   "appium:settings[shouldUseCompactResponses]": false,
   "appium:settings[includeNonModalElements]": true,
   "appium:showSemanticsInformation": true,
-  "appium:platformName": "mac",
 };
+
+const platform = process.env.PLATFORM;
 
 const wdOpts = {
   hostname: process.env.APPIUM_HOST || "localhost",
@@ -30,7 +30,7 @@ const wdOpts = {
   path: "/",
   capabilities: platform === "mac" ? macCapability : capabilities,
 };
-
+ 
 let token = null;
 let token_user_name = "hemalatha";
 let token_password = "Test@123";
@@ -38,16 +38,16 @@ let qrCode = null;
 let tenantUserInfo = null;
 let policyId = null;
 let searchVal = "hemalatha";
-
+ 
 const BASEPATH = "https://vl890982-dev-fbpl2.sspdev.dev.broadcom.com/default";
-
+ 
 const generateToken = () => {
   const clientID = "83ec3746-d86c-4ff5-8f27-0f7e9d427a8e";
   const clientSecret = "aaccc8cd-581c-4bd6-9836-62747bfd77cf";
   const apiUrl = `${BASEPATH}/oauth2/v1/token`;
   const authString = `${clientID}:${clientSecret}`;
   const encodedAuth = btoa(authString);
-
+ 
   const body =
     "grant_type=client_credentials" +
     "&scope=" +
@@ -68,7 +68,7 @@ const generateToken = () => {
       console.error("Error fetching token:", err);
     });
 };
-
+ 
 const inititateAuth = (accessToken) => {
   const apiUrl = `${BASEPATH}/auth/v1/authenticate`;
   const payload = {
@@ -94,7 +94,7 @@ const inititateAuth = (accessToken) => {
       console.error("Error flow:", err);
     });
 };
-
+ 
 const inititateAuthPassword = (accessToken, resData) => {
   const apiUrl = `${BASEPATH}/factor/v1/PasswordAuthenticator`;
   const payload = {
@@ -116,20 +116,20 @@ const inititateAuthPassword = (accessToken, resData) => {
       console.error("Error user password:", err);
     });
 };
-
+ 
 const generateUserToken = (res) => {
   let apiUrl = `${BASEPATH}/oauth2/v1/token`;
-  const clientID = "a708d773-1017-4eb6-8bdc-abf6e15f2e90";
-  const clientSecret = "b464a6ea-061e-400a-ab12-2b7251afd691";
+  const clientID = "83ec3746-d86c-4ff5-8f27-0f7e9d427a8e";
+  const clientSecret = "aaccc8cd-581c-4bd6-9836-62747bfd77cf";
   const authString = `${clientID}:${clientSecret}`;
   const encodedAuth = btoa(authString);
-
+ 
   const body =
     "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer" +
     "&scope=" +
     encodeURIComponent("urn:iam:m.me") +
     `&assertion=${res.id_token}`;
-
+ 
   axios
     .post(apiUrl, body, {
       headers: {
@@ -146,7 +146,7 @@ const generateUserToken = (res) => {
       console.error("Error fetching token:", err);
     });
 };
-
+ 
 const fetchWalletClientId = () => {
   const apiUrl = `${BASEPATH}/me/v1/Settings`;
   axios
@@ -165,7 +165,7 @@ const fetchWalletClientId = () => {
       console.log(err, "setting wallet error");
     });
 };
-
+ 
 const UserInfo = (walletClientInfo) => {
   const apiUrl = `${BASEPATH}/oauth2/v1/userinfo`;
   axios
@@ -180,10 +180,10 @@ const UserInfo = (walletClientInfo) => {
       function parseJwt(token) {
         try {
           if (!token) throw new Error("No token provided");
-
+ 
           const base64Url = token.split(".")[1];
           if (!base64Url) throw new Error("Invalid token format");
-
+ 
           const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
           const jsonPayload = decodeURIComponent(
             atob(base64)
@@ -191,25 +191,25 @@ const UserInfo = (walletClientInfo) => {
               .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
               .join("")
           );
-
+ 
           const parsed = JSON.parse(jsonPayload);
           console.log("User JSON:", parsed);
-
+ 
           return (userInfo = parsed);
         } catch (error) {
           console.error("JWT parsing failed:", error.message);
           return null;
         }
       }
-      await parseJwt(res.data);
-
-      await createWallet(walletClientInfo, userInfo);
+      // await parseJwt(res.data);
+ 
+      await createWallet(walletClientInfo, res.data);
     })
     .catch((err) => {
       console.log(err, "setting wallet error");
     });
 };
-
+ 
 const deleteWallet = () => {
   let payload = {
     walletId: tenantUserInfo.walletId,
@@ -229,7 +229,7 @@ const deleteWallet = () => {
       console.log(err, "Delete wallet error");
     });
 };
-
+ 
 const deletePolicy = () => {
   let apiUrl = `${BASEPATH}/me/v1/Machine2MachinePolicies/${policyId}`;
   axios
@@ -245,7 +245,7 @@ const deletePolicy = () => {
       console.log(err, "Delete Policy error");
     });
 };
-
+ 
 const CreatePolicy = async () => {
   let apiUrl = `${BASEPATH}/me/v1/Machine2MachinePolicies`;
   let payload = {
@@ -257,7 +257,7 @@ const CreatePolicy = async () => {
     endDate: "2025-08-30 00:00 PM UTC",
     tags: ["test"],
   };
-
+ 
   axios
     .post(apiUrl, payload, {
       headers: {
@@ -274,7 +274,7 @@ const CreatePolicy = async () => {
       console.error("Error creating policy:", error);
     });
 };
-
+ 
 const policyUpdate = (id) => {
   let payload = {
     description: "Sample Machine2Machine policy testcase",
@@ -344,14 +344,14 @@ const policyUpdate = (id) => {
       console.log("error unable to update policy: ", err);
     });
 };
-
+ 
 const generateTokenForAuthRequest = () => {
   const clientID = "4fb66f92-5bb6-44a6-b09f-ff5b0aff9bbe";
   const clientSecret = "4a229ec2-59cb-4f09-adaa-35e62f33a17e";
   const apiUrl = `${BASEPATH}/oauth2/v1/token`;
   const authString = `${clientID}:${clientSecret}`;
   const encodedAuth = btoa(authString);
-
+ 
   const body =
     "grant_type=client_credentials" +
     "&scope=" +
@@ -372,7 +372,7 @@ const generateTokenForAuthRequest = () => {
       console.error("Error fetching token:", err);
     });
 };
-
+ 
 const sendPresentationRequest = (accessToken) => {
   const apiUrl = `${BASEPATH}/machineid/v1/client/auth/api/v3/do-authenticationV4`;
   const payload = {
@@ -398,7 +398,7 @@ const sendPresentationRequest = (accessToken) => {
       console.log(err, "UNABLE SEND IDP PRESENTATION REQUEST");
     });
 };
-
+ 
 async function testSearchCredential(driver) {
   const searchInput = await driver.$("~searchCredentials");
   const isSearchDisplayed = await searchInput.isDisplayed();
@@ -419,14 +419,14 @@ async function testSearchCredential(driver) {
 }
 async function testSyncCredential(driver) {
   await driver.pause(3000);
-
+ 
   const syncBtn = await driver.$("~SyncButtonIcon");
   const isSyncBtmDisplayed = syncBtn.isDisplayed();
   if (isSyncBtmDisplayed) {
     const syncBtnClick = await driver.$("~SyncButtonIcon");
     await syncBtnClick.click();
     await driver.pause(3000);
-
+ 
     const syncSuccessAlert = await driver.$(
       'android=new UiSelector().resourceId("com.broadcom.ssp.wallet:id/alert_title")'
     );
@@ -447,23 +447,23 @@ async function testSyncCredential(driver) {
   }
   await driver.pause(3000);
 }
-
+ 
 async function testActivityLog(driver) {
   const activityLogTab = await driver.$(`~tabActivityLog`);
   await activityLogTab.isDisplayed();
   await activityLogTab.click();
   await driver.pause(3000);
-
+ 
   const activityLogScreen = await driver.$("~activityLogHeader");
   await activityLogScreen.isDisplayed();
   await driver.pause(3000);
 }
-
+ 
 async function testRejectAuthenticationRequest(driver) {
   await generateTokenForAuthRequest();
   await driver.pause(5000);
   await driver.pause(5000);
-
+ 
   const authenticationRequestHeader = await driver.$(
     "~allowAuthenticationHeader"
   );
@@ -476,7 +476,6 @@ async function testRejectAuthenticationRequest(driver) {
     const rejectBtnDisplayed = await rejectAuthenticationButton.isDisplayed();
     if (rejectBtnDisplayed) {
       await rejectAuthenticationButton.click();
-      await testFingerPrint(driver);
     } else {
       console.log("Authentication Reject Button not visible");
       console.log("TestCase Failed");
@@ -488,12 +487,12 @@ async function testRejectAuthenticationRequest(driver) {
     console.error("Test error:", err);
   }
 }
-
+ 
 async function testApproveAuthenticationRequest(driver) {
   await generateTokenForAuthRequest();
   await driver.pause(5000);
   await driver.pause(7000);
-
+ 
   const authenticationRequestHeader = await driver.$(
     "~allowAuthenticationHeader"
   );
@@ -506,7 +505,6 @@ async function testApproveAuthenticationRequest(driver) {
     const rejectBtnDisplayed = await approveAuthenticationButton.isDisplayed();
     if (rejectBtnDisplayed) {
       await approveAuthenticationButton.click();
-      await testFingerPrint(driver);
     } else {
       console.log("Authentication Accept Button not visible");
       console.log("TestCase Failed");
@@ -518,14 +516,14 @@ async function testApproveAuthenticationRequest(driver) {
     console.error("Test error:", err);
   }
 }
-
+ 
 async function testSSPLogin(driver) {
   let usernameVal = "hemalatha";
   let passwordVal = "Test@123";
   let searchVal = "hemalatha";
-
+ 
   const loginHeader = await driver.$(
-    'android=new UiSelector().text("Connecting to WalletClient")'
+    'android=new UiSelector().text("Connecting to WalletClient")'
   );
   const isloginHeaderDisplayed = await loginHeader.isDisplayed();
   if (isloginHeaderDisplayed) {
@@ -586,43 +584,57 @@ async function testSSPLogin(driver) {
     await deletePolicy();
   }
 }
-
-async function testFingerPrint(driver) {
-  const fingerprintAuthenticate = await driver.$(
-    'android=new UiSelector().text("Authenticate")'
-  );
-  const isFIngerprintAuthDisplayed =
-    await fingerprintAuthenticate.isDisplayed();
-  if (isFIngerprintAuthDisplayed) {
-    await driver.fingerPrint(1);
-    // const success = await driver.$('//android.widget.TextView[@text="Authenticated!"]');
-    // await expect(success).toBeDisplayed(); await driver.pause(3000)
-
-    await driver.pause(1000);
+ 
+async function testWalletLogin(driver) {
+  const walletLoginScreen = await driver.$("~walletLogin");
+  const isWalletLoginScreenDisplayed = await walletLoginScreen.isDisplayed();
+  if (isWalletLoginScreenDisplayed) {
+    const loginBtn = await driver.$("~walletLoginButton");
+    await loginBtn.isDisplayed();
+    await loginBtn.click();
+    await driver.pause(3000);
   } else {
-    console.log("Unable to authenticate");
+    console.log("Login screen is not displayed");
   }
 }
-
+ 
 const mainFunction = async () => {
   const driver = await remote(wdOpts);
-
   let usernameVal = "hemalatha";
   let passwordVal = "Test@123";
-
+ 
   try {
     // await driver.getPageSource()
     await CreatePolicy();
+    await driver.pause(5000);
+    await driver.pause(9000);
     const titleElement = await driver.$("~configureWalletHeading");
     const isDisplayed = await titleElement.isDisplayed();
     await driver.pause(5000);
-    if (isDisplayed) {
+     if (isDisplayed) {
       const inputField = await driver.$("~qrInputLabel");
       const isInputFieldDisplayed = await inputField.isDisplayed();
       if (isInputFieldDisplayed) {
         const QrCodeInput = await driver.$("~qrCodeInput");
+        await QrCodeInput.isDisplayed();
         await QrCodeInput.clearValue();
-        await QrCodeInput.setValue(qrCode);
+        // await QrCodeInput.setValue(qrCode);
+        // await driver.keys(qrCode);
+        
+        await driver.execute("macos: appleScript", {
+          script: `return set the clipboard to "${qrCode}"`
+        });
+ 
+        // const base64Text = Buffer.from(qrCode, "utf-8").toString("base64");
+ 
+        // await driver.setClipboard("plaintext", base64Text);
+        // const clipboardText = await driver.getClipboard("plaintext");
+        // expect(clipboardText).toEqual("qrCode");
+        const pasteButton = await driver.$("~qrCodePasteButton");
+ 
+        // Step 3: Click the paste button
+        await pasteButton.click();
+ 
         console.log("Entered QR code successfully");
         await driver.pause(3000);
         // Click the button
@@ -635,40 +647,42 @@ const mainFunction = async () => {
     } else {
       console.log("Its not displayed");
     }
-
+ 
+    await testWalletLogin(driver);
+ 
     await driver.pause(9000);
-
-    await testSSPLogin(driver);
-
+ 
+    // await testSSPLogin(driver);
+ 
     await driver.pause(4000);
-
-    const SignInHeader = await driver.$("~SignInHeader");
-    const isSignInHeaderDisplayed = await SignInHeader.isDisplayed();
-
-    const fingerprintAuthenticate = await driver.$(
-      'android=new UiSelector().text("Authenticate")'
-    );
-    const isFIngerprintAuthDisplayed =
-      await fingerprintAuthenticate.isDisplayed();
-    if (isSignInHeaderDisplayed) {
-      const passwordInput = await driver.$("~passwordInput");
-      await passwordInput.clearValue();
-      await passwordInput.setValue(passwordVal);
-      console.log("Entered Password successfully");
-      // Click the signin button
-      const sigInButton = await driver.$("~signInButton");
-      await sigInButton.click();
-      await driver.pause(3000);
-      console.log("Wallet Logged In successfully");
-    } else if (isFIngerprintAuthDisplayed) {
-      // Simulate fingerprint match
-      await driver.fingerPrint(1);
-      console.log("Authentication successful:");
-    } else {
-      console.log("Password Input field not visible");
-      console.error("Test error:", err);
-    }
-
+ 
+    // const SignInHeader = await driver.$("~SignInHeader");
+    // const isSignInHeaderDisplayed = await SignInHeader.isDisplayed();
+ 
+    // const fingerprintAuthenticate = await driver.$(
+    //   'android=new UiSelector().text("Authenticate")'
+    // );
+    // const isFIngerprintAuthDisplayed =
+    //   await fingerprintAuthenticate.isDisplayed();
+    // if (isSignInHeaderDisplayed) {
+    //   const passwordInput = await driver.$("~passwordInput");
+    //   await passwordInput.clearValue();
+    //   await passwordInput.setValue(passwordVal);
+    //   console.log("Entered Password successfully");
+    //   // Click the signin button
+    //   const sigInButton = await driver.$("~signInButton");
+    //   await sigInButton.click();
+    //   await driver.pause(3000);
+    //   console.log("Wallet Logged In successfully");
+    // } else if (isFIngerprintAuthDisplayed) {
+    //   // Simulate fingerprint match
+    //   await driver.fingerPrint(1);
+    //   console.log("Authentication successful:");
+    // } else {
+    //   console.log("Password Input field not visible");
+    //   console.error("Test error:", err);
+    // }
+ 
     await driver.pause(3000);
     const homeHeader = await driver.$("~homeHeader");
     const isHomeDisplayed = await homeHeader.isDisplayed();
@@ -721,10 +735,10 @@ const mainFunction = async () => {
         console.log("Tabs not visible");
         console.error("Test error Tabs:", err);
       }
-
+ 
       // SYNC CREDENTIAL BUTTON
       await testSyncCredential(driver);
-
+ 
       // //DENY CREDENTIAL
       // const denyCredential = await driver.$("~acceptCredentialHeader");
       // const isDenyCredentialDisplayed = await denyCredential.isDisplayed();
@@ -732,7 +746,7 @@ const mainFunction = async () => {
       //   const acceptBtn = await driver.$("~rejectCredentialButton");
       //   await acceptBtn.isDisplayed();
       //   await acceptBtn.click();
-
+ 
       //   await testFingerPrint(driver);
       // } else {
       //   console.log("Authentication Failed");
@@ -742,13 +756,13 @@ const mainFunction = async () => {
       // await CreatePolicy();
       // console.log("Creating Policy.....");
       // await driver.pause(6000);
-
+ 
       // //SYNC Credential TO ACCEPT CREDENTIAL
       // await driver.pause(6000);
-
+ 
       // await testSyncCredential(driver);
       // await driver.pause(6000);
-
+ 
       //ACCEPT CREDENTIAL
       await driver.pause(2000);
       const acceptCredential = await driver.$("~acceptCredentialHeader");
@@ -757,26 +771,24 @@ const mainFunction = async () => {
         const acceptBtn = await driver.$("~acceptCredentialButton");
         await acceptBtn.isDisplayed();
         await acceptBtn.click();
-
-        await testFingerPrint(driver);
       } else {
         console.log("Authentication Failed");
       }
       //ACTIVITY TAB
       await testActivityLog(driver);
-
+ 
       //Reject Authentication Request
       await testRejectAuthenticationRequest(driver);
       await driver.pause(3000);
-
+ 
       //Approve Authentication Request
       await testApproveAuthenticationRequest(driver);
       await driver.pause(3000);
-
+ 
       //ACTIVITY TAB
       await testActivityLog(driver);
       await driver.pause(3000);
-
+ 
       //ACCOUNT TAB
       const accountTab = await driver.$("~tabAccount");
       await accountTab.isDisplayed();
@@ -800,16 +812,13 @@ const mainFunction = async () => {
           await cancleLogoutBtn.click();
           await accountTab.isDisplayed();
           await logoutBtn.isDisplayed();
-
+ 
           await logoutBtn.click();
           const okBtn = await driver.$(
             'android=new UiSelector().resourceId("android:id/button1")'
           );
           await okBtn.isDisplayed();
           await okBtn.click();
-
-          await testFingerPrint(driver);
-
           const walletLoginScreen = await driver.$("~walletLogin");
           const isWalletLoginScreenDisplayed =
             await walletLoginScreen.isDisplayed();
@@ -840,8 +849,6 @@ const mainFunction = async () => {
           );
           await okBtn.isDisplayed();
           await okBtn.click();
-
-          await testFingerPrint(driver);
           await driver.pause(4000);
           const titleElement = await driver.$(
             'android=new UiSelector().text("Configure Wallet")'
@@ -905,9 +912,11 @@ const createWallet = (walletClientInfo, userInfo) => {
       console.error("Error creating Wallet:", error);
     });
 };
-
+ 
 async function runTest() {
   await generateToken();
 }
-
+ 
 runTest().catch(console.error);
+ 
+ 
