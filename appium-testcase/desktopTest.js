@@ -13,16 +13,17 @@ const capabilities = {
   "appium:platformName": "Windows",
 };
 const macCapability = {
-  "appium:platformName": "mac",
+  "platformName": "mac",
   "appium:automationName": "mac2",
   "appium:bundleId": "com.broadcom.ssp.wallet",
   "appium:settings[shouldUseCompactResponses]": false,
   "appium:settings[includeNonModalElements]": true,
-  "appium:showSemanticsInformation": true,
+  "appium:showSemanticsInformation": true
 };
-
 const platform = process.env.PLATFORM;
-
+ 
+console.log(platform, "platform");
+ 
 const wdOpts = {
   hostname: process.env.APPIUM_HOST || "localhost",
   port: parseInt(process.env.APPIUM_PORT, 10) || 4723,
@@ -37,15 +38,15 @@ let token_password = "Test@123";
 let qrCode = null;
 let tenantUserInfo = null;
 let policyId = null;
+let policyId2 = null;
 let searchVal = "hemalatha";
- 
-const BASEPATH = "https://vl890982-dev-fbpl2.sspdev.dev.broadcom.com/default";
+const userClientID = "f2c1e429-349a-4577-8d8d-62cde0e9bacc";
+const userClientSecret = "3812126f-e3c3-4fd1-8cdf-63e597ece811";
+const BASEPATH = "https://vl890982-pwlessteam.sspdev.dev.broadcom.com/default";
  
 const generateToken = () => {
-  const clientID = "83ec3746-d86c-4ff5-8f27-0f7e9d427a8e";
-  const clientSecret = "aaccc8cd-581c-4bd6-9836-62747bfd77cf";
   const apiUrl = `${BASEPATH}/oauth2/v1/token`;
-  const authString = `${clientID}:${clientSecret}`;
+  const authString = `${userClientID}:${userClientSecret}`;
   const encodedAuth = btoa(authString);
  
   const body =
@@ -119,9 +120,7 @@ const inititateAuthPassword = (accessToken, resData) => {
  
 const generateUserToken = (res) => {
   let apiUrl = `${BASEPATH}/oauth2/v1/token`;
-  const clientID = "83ec3746-d86c-4ff5-8f27-0f7e9d427a8e";
-  const clientSecret = "aaccc8cd-581c-4bd6-9836-62747bfd77cf";
-  const authString = `${clientID}:${clientSecret}`;
+  const authString = `${userClientID}:${userClientSecret}`;
   const encodedAuth = btoa(authString);
  
   const body =
@@ -175,7 +174,7 @@ const UserInfo = (walletClientInfo) => {
       },
     })
     .then(async (res) => {
-      // console.log(res.data, "userinfo");
+      console.log(res.data, "userinfo");
       let userInfo = null;
       function parseJwt(token) {
         try {
@@ -201,7 +200,7 @@ const UserInfo = (walletClientInfo) => {
           return null;
         }
       }
-      // await parseJwt(res.data);
+      await parseJwt(res.data);
  
       await createWallet(walletClientInfo, res.data);
     })
@@ -245,6 +244,21 @@ const deletePolicy = () => {
       console.log(err, "Delete Policy error");
     });
 };
+const deletePolicy2 = () => {
+  let apiUrl = `${BASEPATH}/me/v1/Machine2MachinePolicies/${policyId2}`;
+  axios
+    .delete(apiUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((res) => {
+      console.log("Policy Deleted Successfully");
+    })
+    .catch((err) => {
+      console.log(err, "Delete Policy error");
+    });
+};
  
 const CreatePolicy = async () => {
   let apiUrl = `${BASEPATH}/me/v1/Machine2MachinePolicies`;
@@ -253,8 +267,8 @@ const CreatePolicy = async () => {
     status: "inactive",
     policyName: "Sample Machine2Machine policy",
     policyPriority: 1,
-    startDate: "2025-08-04 00:00 AM UTC",
-    endDate: "2025-08-30 00:00 PM UTC",
+    startDate: "2025-09-03 00:00 AM UTC",
+    endDate: "2025-10-29 00:00 PM UTC",
     tags: ["test"],
   };
  
@@ -281,8 +295,8 @@ const policyUpdate = (id) => {
     status: "active",
     policyName: "Sample Machine2Machine policy",
     policyPriority: 1,
-    startDate: "2025-08-04 00:00 AM UTC",
-    endDate: "2025-08-30 00:00 PM UTC",
+    startDate: "2025-09-03 00:00 AM UTC",
+    endDate: "2025-10-29 00:00 PM UTC",
     tags: ["test"],
     rules: [
       {
@@ -300,11 +314,110 @@ const policyUpdate = (id) => {
           sourceMachine: {
             hostFqdn: {
               operator: "in",
-              value: ["test-VM-Machine 4o6tevivja"],
+              value: ["test-vm-14.passwordless.com"],
             },
             hostIp: {
               operator: "in",
-              value: ["42.226.85.135"],
+              value: ["20.9.144.76"],
+            },
+          },
+          destinationMachine: {
+            hostFqdn: {
+              operator: "not",
+              value: ["test-vm-14.passwordless.com"],
+            },
+            hostIp: {
+              operator: "in",
+              value: ["20.9.144.76"],
+            },
+          },
+        },
+        result: {
+          effect: "allow",
+          reAuth: "true",
+          reAuthFrequency: "EveryTime",
+          msg: "This policy is for login in mobile testcase",
+          rulePriority: 2,
+        },
+      },
+    ],
+  };
+  let apiUrl = `${BASEPATH}/me/v1/Machine2MachinePolicies/${id}`;
+  axios
+    .put(apiUrl, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+    .then((res) => {
+      console.log(res.data, "POLICY UPDATE");
+      console.log("POLICY CREATED SUCCESSFULLY");
+    })
+    .catch((err) => {
+      console.log("error unable to update policy: ", err);
+    });
+};
+ 
+const CreatePolicy2 = async () => {
+  let apiUrl = `${BASEPATH}/me/v1/Machine2MachinePolicies`;
+  let payload = {
+    description: "Sample Machine2Machine policy2 testcase",
+    status: "inactive",
+    policyName: "Sample Machine2Machine testCase policy2",
+    policyPriority: 1,
+    startDate: "2025-09-03 00:00 AM UTC",
+    endDate: "2025-10-29 00:00 PM UTC",
+    tags: ["test"],
+  };
+ 
+  axios
+    .post(apiUrl, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+    .then(async (response) => {
+      console.log("policy data:", response.data);
+      policyId2 = response.data.policyId;
+      policyUpdate2(response.data.policyId);
+    })
+    .catch((error) => {
+      console.error("Error creating policy:", error);
+    });
+};
+ 
+const policyUpdate2 = (id) => {
+  let payload = {
+    description: "Sample Machine2Machine policy2 testcase",
+    status: "active",
+    policyName: "Sample Machine2Machine testCase policy2",
+    policyPriority: 1,
+    startDate: "2025-09-03 00:00 AM UTC",
+    endDate: "2025-10-29 00:00 PM UTC",
+    tags: ["test"],
+    rules: [
+      {
+        conditions: {
+          serviceAccount: {
+            operator: "in",
+            value: ["dbbackup"],
+          },
+          principal: {
+            user: {
+              operator: "in",
+              value: ["hemalatha"],
+            },
+          },
+          sourceMachine: {
+            hostFqdn: {
+              operator: "in",
+              value: ["test-vm-14.passwordless.com"],
+            },
+            hostIp: {
+              operator: "in",
+              value: ["20.9.144.76"],
             },
           },
           destinationMachine: {
@@ -346,8 +459,8 @@ const policyUpdate = (id) => {
 };
  
 const generateTokenForAuthRequest = () => {
-  const clientID = "4fb66f92-5bb6-44a6-b09f-ff5b0aff9bbe";
-  const clientSecret = "4a229ec2-59cb-4f09-adaa-35e62f33a17e";
+  const clientID = "e5385aae-5fdc-4cb9-892d-38e2099fc103";
+  const clientSecret = "166c4781-0af0-448c-8d22-f491512f64ca";
   const apiUrl = `${BASEPATH}/oauth2/v1/token`;
   const authString = `${clientID}:${clientSecret}`;
   const encodedAuth = btoa(authString);
@@ -381,7 +494,7 @@ const sendPresentationRequest = (accessToken) => {
     groupName: "",
     credentialType: "ServiceAccount",
     requestId: "",
-    sourceIp: "42.226.85.135",
+    sourceIp: "20.9.144.76",
     port: "9999",
   };
   axios
@@ -404,11 +517,26 @@ async function testSearchCredential(driver) {
   const isSearchDisplayed = await searchInput.isDisplayed();
   if (isSearchDisplayed) {
     await searchInput.clearValue();
+    await searchInput.setValue("");
     await searchInput.setValue("muthu");
     const noCredentialFound = await driver.$("~noCredentialFound");
     await noCredentialFound.isDisplayed();
     await driver.pause(2000);
-    await searchInput.clearValue();
+    await searchInput.setValue("");
+    await driver.pause(2000);
+ 
+    if (platform === "mac") {
+      await searchInput.click();
+      const currentValue = await searchInput.getValue();
+      if (currentValue) {
+        const backspaces = new Array(currentValue.length).fill("\uE003");
+        await driver.keys(backspaces);
+        await driver.pause(2000);
+      }
+    } else {
+      await searchInput.clearValue();
+    }
+    await driver.pause(3000);
     await searchInput.setValue(searchVal);
     const idpCredential = await driver.$("~credential_0");
     await idpCredential.isDisplayed();
@@ -417,6 +545,7 @@ async function testSearchCredential(driver) {
     console.error("Test error search username:", err);
   }
 }
+ 
 async function testSyncCredential(driver) {
   await driver.pause(3000);
  
@@ -427,20 +556,26 @@ async function testSyncCredential(driver) {
     await syncBtnClick.click();
     await driver.pause(3000);
  
-    const syncSuccessAlert = await driver.$(
-      'android=new UiSelector().resourceId("com.broadcom.ssp.wallet:id/alert_title")'
-    );
-    const isSyncSuccess = await syncSuccessAlert.isDisplayed();
-    if (isSyncSuccess) {
-      const syncSuccessOk = await driver.$(
-        '//android.widget.Button[@resource-id="android:id/button1"]'
-      );
-      await syncSuccessOk.isDisplayed();
-      await driver.pause(3000);
-      await syncSuccessOk.click();
-      // await homeHeader.isDisplayed();
-      await driver.pause(3000);
-    }
+    // const syncSuccessAlert = await driver.$(
+    //   platform === "ios"
+    //     ? '//XCUIElementTypeStaticText[@name="Success"]'
+    //     : 'android=new UiSelector().resourceId("com.broadcom.ssp.wallet:id/alert_title")'
+    // );
+    // const isSyncSuccess = await syncSuccessAlert.isDisplayed();
+    // if (isSyncSuccess) {
+    //   const syncSuccessOk = await driver.$(
+    //     platform === "ios"
+    //       ? '//XCUIElementTypeButton[@name="OK"]'
+    //       : '//android.widget.Button[@resource-id="android:id/button1"]'
+    //   );
+    // await syncSuccessOk.isDisplayed();
+    console.log("Wating for Credential screen");
+ 
+    await driver.pause(3000);
+    // await syncSuccessOk.click();
+    // await homeHeader.isDisplayed();
+    await driver.pause(3000);
+    // }
   } else {
     console.log("Sync not visible");
     console.error("Test error Tabs:", err);
@@ -461,9 +596,11 @@ async function testActivityLog(driver) {
  
 async function testRejectAuthenticationRequest(driver) {
   await generateTokenForAuthRequest();
+  await console.log("Waiting for Authentication Screen...");
   await driver.pause(5000);
   await driver.pause(5000);
- 
+  await driver.pause(5000);
+  await console.log("Authentication screen opened successfully...");
   const authenticationRequestHeader = await driver.$(
     "~allowAuthenticationHeader"
   );
@@ -490,9 +627,11 @@ async function testRejectAuthenticationRequest(driver) {
  
 async function testApproveAuthenticationRequest(driver) {
   await generateTokenForAuthRequest();
+  await console.log("Waiting for Authentication Screen...");
   await driver.pause(5000);
   await driver.pause(7000);
- 
+  await driver.pause(5000);
+  await console.log("Authentication screen opened successfully...");
   const authenticationRequestHeader = await driver.$(
     "~allowAuthenticationHeader"
   );
@@ -517,74 +656,6 @@ async function testApproveAuthenticationRequest(driver) {
   }
 }
  
-async function testSSPLogin(driver) {
-  let usernameVal = "hemalatha";
-  let passwordVal = "Test@123";
-  let searchVal = "hemalatha";
- 
-  const loginHeader = await driver.$(
-    'android=new UiSelector().text("Connecting to WalletClient")'
-  );
-  const isloginHeaderDisplayed = await loginHeader.isDisplayed();
-  if (isloginHeaderDisplayed) {
-    const usernameLable = await driver.$(
-      '//android.view.View[@text="Username"]'
-    );
-    const isUsernameLableDisplayed = await usernameLable.isDisplayed();
-    if (isUsernameLableDisplayed) {
-      const usernameInput = await driver.$(
-        'android=new UiSelector().resourceId("usernameInput")'
-      );
-      await usernameInput.clearValue();
-      await usernameInput.setValue(usernameVal);
-      console.log("Entered Username successfully");
-      await driver.pause(3000);
-      // Click the next button
-      await driver.$(
-        "android=new UiScrollable(new UiSelector().scrollable(true)).scrollForward()"
-      );
-      const nextButton = await driver.$(
-        '//android.widget.Button[@text="Next"]'
-      );
-      await nextButton.click();
-      await driver.pause(3000);
-      const passwordLable = await driver.$(
-        'android=new UiSelector().text("Password")'
-      );
-      const isPasswordLableDisplayed = await passwordLable.isDisplayed();
-      if (isPasswordLableDisplayed) {
-        const usernameInput = await driver.$(
-          'android=new UiSelector().resourceId("passwordInput")'
-        );
-        await usernameInput.clearValue();
-        await usernameInput.setValue(passwordVal);
-        console.log("Entered Password successfully");
-        await driver.pause(3000);
-        // Click the signin button
-        await driver.$(
-          "android=new UiScrollable(new UiSelector().scrollable(true)).scrollForward()"
-        );
-        const sigInButton = await driver.$(
-          '//android.widget.Button[@text="Sign In"]'
-        );
-        await sigInButton.click();
-        await driver.pause(3000);
-      } else {
-        await driver.pause(4000);
-        console.log("Password Input field not visible");
-        console.error("Test error:", err);
-      }
-    } else {
-      await driver.pause(4000);
-      console.log("Username Input field not visible");
-      console.error("Test error:", err);
-    }
-  } else {
-    await deleteWallet();
-    await deletePolicy();
-  }
-}
- 
 async function testWalletLogin(driver) {
   const walletLoginScreen = await driver.$("~walletLogin");
   const isWalletLoginScreenDisplayed = await walletLoginScreen.isDisplayed();
@@ -600,6 +671,7 @@ async function testWalletLogin(driver) {
  
 const mainFunction = async () => {
   const driver = await remote(wdOpts);
+ 
   let usernameVal = "hemalatha";
   let passwordVal = "Test@123";
  
@@ -608,21 +680,20 @@ const mainFunction = async () => {
     await CreatePolicy();
     await driver.pause(5000);
     await driver.pause(9000);
+ 
     const titleElement = await driver.$("~configureWalletHeading");
     const isDisplayed = await titleElement.isDisplayed();
     await driver.pause(5000);
-     if (isDisplayed) {
+    if (isDisplayed) {
       const inputField = await driver.$("~qrInputLabel");
       const isInputFieldDisplayed = await inputField.isDisplayed();
       if (isInputFieldDisplayed) {
         const QrCodeInput = await driver.$("~qrCodeInput");
         await QrCodeInput.isDisplayed();
         await QrCodeInput.clearValue();
-        // await QrCodeInput.setValue(qrCode);
-        // await driver.keys(qrCode);
-        
+        //PASTE BUTTON
         await driver.execute("macos: appleScript", {
-          script: `return set the clipboard to "${qrCode}"`
+          script: `return set the clipboard to "${qrCode}"`,
         });
  
         // const base64Text = Buffer.from(qrCode, "utf-8").toString("base64");
@@ -650,38 +721,8 @@ const mainFunction = async () => {
  
     await testWalletLogin(driver);
  
+    await console.log("Waiting for login screen...");
     await driver.pause(9000);
- 
-    // await testSSPLogin(driver);
- 
-    await driver.pause(4000);
- 
-    // const SignInHeader = await driver.$("~SignInHeader");
-    // const isSignInHeaderDisplayed = await SignInHeader.isDisplayed();
- 
-    // const fingerprintAuthenticate = await driver.$(
-    //   'android=new UiSelector().text("Authenticate")'
-    // );
-    // const isFIngerprintAuthDisplayed =
-    //   await fingerprintAuthenticate.isDisplayed();
-    // if (isSignInHeaderDisplayed) {
-    //   const passwordInput = await driver.$("~passwordInput");
-    //   await passwordInput.clearValue();
-    //   await passwordInput.setValue(passwordVal);
-    //   console.log("Entered Password successfully");
-    //   // Click the signin button
-    //   const sigInButton = await driver.$("~signInButton");
-    //   await sigInButton.click();
-    //   await driver.pause(3000);
-    //   console.log("Wallet Logged In successfully");
-    // } else if (isFIngerprintAuthDisplayed) {
-    //   // Simulate fingerprint match
-    //   await driver.fingerPrint(1);
-    //   console.log("Authentication successful:");
-    // } else {
-    //   console.log("Password Input field not visible");
-    //   console.error("Test error:", err);
-    // }
  
     await driver.pause(3000);
     const homeHeader = await driver.$("~homeHeader");
@@ -716,9 +757,7 @@ const mainFunction = async () => {
           const credentialInfo = await driver.$(`~credentialInformationHeader`);
           await credentialInfo.isDisplayed();
           await driver.pause(3000);
-          const backToHome = await driver.$(
-            '//android.widget.ImageButton[@content-desc="Navigate up"]'
-          );
+          const backToHome = await driver.$("~backHomeButton");
           await backToHome.isDisplayed();
           await backToHome.click();
           await driver.pause(3000);
@@ -739,30 +778,6 @@ const mainFunction = async () => {
       // SYNC CREDENTIAL BUTTON
       await testSyncCredential(driver);
  
-      // //DENY CREDENTIAL
-      // const denyCredential = await driver.$("~acceptCredentialHeader");
-      // const isDenyCredentialDisplayed = await denyCredential.isDisplayed();
-      // if (isDenyCredentialDisplayed) {
-      //   const acceptBtn = await driver.$("~rejectCredentialButton");
-      //   await acceptBtn.isDisplayed();
-      //   await acceptBtn.click();
- 
-      //   await testFingerPrint(driver);
-      // } else {
-      //   console.log("Authentication Failed");
-      // }
-      // // await deletePolicy();
-      // await driver.pause(4000);
-      // await CreatePolicy();
-      // console.log("Creating Policy.....");
-      // await driver.pause(6000);
- 
-      // //SYNC Credential TO ACCEPT CREDENTIAL
-      // await driver.pause(6000);
- 
-      // await testSyncCredential(driver);
-      // await driver.pause(6000);
- 
       //ACCEPT CREDENTIAL
       await driver.pause(2000);
       const acceptCredential = await driver.$("~acceptCredentialHeader");
@@ -774,6 +789,30 @@ const mainFunction = async () => {
       } else {
         console.log("Authentication Failed");
       }
+ 
+      //DENY CREDENTIAL
+ 
+      await CreatePolicy2();
+      await console.log("Creating Policy.....");
+      await driver.pause(6000);
+      await driver.pause(3000);
+      //SYNC Credential TO ACCEPT CREDENTIAL
+      await driver.pause(6000);
+      await console.log("Sync Credential started.....");
+      await testSyncCredential(driver);
+      await driver.pause(6000);
+ 
+      const denyCredential = await driver.$("~acceptCredentialHeader");
+      const isDenyCredentialDisplayed = await denyCredential.isDisplayed();
+      if (isDenyCredentialDisplayed) {
+        const acceptBtn = await driver.$("~rejectCredentialButton");
+        await acceptBtn.isDisplayed();
+        await acceptBtn.click();
+        await driver.pause(3000);
+      } else {
+        console.log("Authentication Failed");
+      }
+ 
       //ACTIVITY TAB
       await testActivityLog(driver);
  
@@ -793,62 +832,47 @@ const mainFunction = async () => {
       const accountTab = await driver.$("~tabAccount");
       await accountTab.isDisplayed();
       await accountTab.click();
-      await driver.pause(3000);
+      await console.log("Clicked on Account Tab");
+      await driver.pause(6000);
+      await driver.pause(6000);
+      await driver.pause(6000);
+      await driver.pause(6000);
+      await driver.pause(5000);
+      await console.log("Account Tab is displayed");
       const accountHeader = await driver.$("~accountHeader");
+      await driver.pause(3000);
       const isAccountHeaderDisplayed = await accountHeader.isDisplayed();
       if (isAccountHeaderDisplayed) {
         const logoutBtn = await driver.$("~logoutAuthenticatorButton");
         const isLogoutBtnDisplayed = await logoutBtn.isDisplayed();
         await logoutBtn.click();
         if (isLogoutBtnDisplayed) {
-          const logoutConfirmationTitle = await driver.$(
-            'android=new UiSelector().resourceId("com.broadcom.ssp.wallet:id/alert_title")'
+          const testOpenApp = await driver.$(
+            '//XCUIElementTypeTextView[@name="Open in “com.broadcom.ssp.wallet”?"]'
           );
-          await logoutConfirmationTitle.isDisplayed();
-          const cancleLogoutBtn = await driver.$(
-            'android=new UiSelector().resourceId("android:id/button2")'
-          );
-          await cancleLogoutBtn.isDisplayed();
-          await cancleLogoutBtn.click();
-          await accountTab.isDisplayed();
-          await logoutBtn.isDisplayed();
- 
-          await logoutBtn.click();
-          const okBtn = await driver.$(
-            'android=new UiSelector().resourceId("android:id/button1")'
-          );
-          await okBtn.isDisplayed();
-          await okBtn.click();
-          const walletLoginScreen = await driver.$("~walletLogin");
-          const isWalletLoginScreenDisplayed =
-            await walletLoginScreen.isDisplayed();
-          if (isWalletLoginScreenDisplayed) {
-            const loginBtn = await driver.$("~walletLoginButton");
-            await loginBtn.isDisplayed();
-            await loginBtn.click();
-            await driver.pause(9000);
-            await testSSPLogin(driver);
-            await driver.pause(3000);
-            await accountTab.isDisplayed();
-            await accountTab.click();
+          const isOpenAppDisplayed = await testOpenApp.isDisplayed();
+          if (isOpenAppDisplayed) {
+            const openAppButton = await driver.$(
+              '//XCUIElementTypeStaticText[@name="Open"]'
+            );
+            await openAppButton.isDisplayed();
+            await openAppButton.click();
             await driver.pause(3000);
           } else {
-            console.log("Login screen is not displayed");
+            console.log("Open App prompt is not displayed");
           }
+ 
+          await testWalletLogin(driver);
+          await driver.pause(3000);
+          await accountTab.isDisplayed();
+          await accountTab.click();
+          await driver.pause(3000);
         }
         const resetWalletBtn = await driver.$("~resetAuthenticatorButton");
         const isResetBtmDisplayed = await resetWalletBtn.isDisplayed();
         if (isResetBtmDisplayed) {
           await resetWalletBtn.click();
-          const resetConfirmationTitle = await driver.$(
-            'android=new UiSelector().resourceId("com.broadcom.ssp.wallet:id/alert_title")'
-          );
-          await resetConfirmationTitle.isDisplayed();
-          const okBtn = await driver.$(
-            'android=new UiSelector().resourceId("android:id/button1")'
-          );
-          await okBtn.isDisplayed();
-          await okBtn.click();
+ 
           await driver.pause(4000);
           const titleElement = await driver.$(
             'android=new UiSelector().text("Configure Wallet")'
@@ -869,10 +893,13 @@ const mainFunction = async () => {
     // await driver.pause(4000);
     await deleteWallet();
     await deletePolicy();
-    console.error("Test error: ", err);
+    await deletePolicy2();
+    console.log("Wallet Deleted Successfully");
   } finally {
     await deleteWallet();
     await deletePolicy();
+    await deletePolicy2();
+    console.log("Wallet Deleted Successfully");
     await driver.pause(3000);
     await driver.deleteSession();
   }
